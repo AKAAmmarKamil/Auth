@@ -13,7 +13,7 @@ using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Options;
+using Auth.Model.Form;
 using Microsoft.IdentityModel.Tokens;
 namespace Auth
 {
@@ -109,9 +109,9 @@ namespace Auth
             return NoContent();
         }
         [HttpPost]
-        public async Task<ActionResult<User>> Login([FromBody] User form)
+        public async Task<ActionResult<User>> Login([FromBody] LoginForm form)
         {
-            var user =await _dbContext.User.FirstOrDefaultAsync(x=>x.UserName==form.UserName&& x.Password==form.Password);
+            var user = await _wrapper.User.Authintication(form);
             if (user != null)
             {
                 var claims = new[]
