@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using Auth.Model.Form;
+using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;

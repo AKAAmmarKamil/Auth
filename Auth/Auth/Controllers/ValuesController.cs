@@ -22,14 +22,12 @@ namespace Auth
     public class ValuesController : ControllerBase
     {
         private IConfiguration _Configuration;
-        private readonly Context _dbContext;
-        private readonly IRepositoryWrapper _user;
+        private readonly IRepositoryWrapper _wrapper;
         private readonly IMapper _mapper;
-        public ValuesController(IConfiguration configuration, IRepositoryWrapper user, IMapper mapper, Context context)
+        public ValuesController(IConfiguration configuration, IRepositoryWrapper wrapper, IMapper mapper, Context context)
         {
             _Configuration = configuration;
-            _dbContext = context;
-            _user = user;
+            _wrapper = wrapper;
             _mapper = mapper;
         }
         [Authorize]
@@ -37,7 +35,7 @@ namespace Auth
 
         public ActionResult<UserReadDto> GetUserById(Guid Id)
         {
-            var result = _dbContext.User.FirstOrDefault(x => x.Id == Id);
+            var result = _wrapper.User.FindById(Id);
             if (result != null)
             {
                 return Ok(result);
@@ -49,7 +47,7 @@ namespace Auth
         [HttpGet("{PageNumber}/{count}")]
         public async Task<ActionResult<UserReadDto>> GetAllUsers(int PageNumber, int count = 10)
         {
-            var Result = await _user.User.FindAll(PageNumber, count);
+            var Result = await _wrapper.User.FindAll(PageNumber, count);
             var UserModel = _mapper.Map<IList<UserReadDto>>(Result);
             return Ok(UserModel);
         }
@@ -59,12 +57,12 @@ namespace Auth
         public async Task<ActionResult<UserReadDto>> Create(UserCreateDto userCreateDto)
         {
             var UserModel = _mapper.Map<User>(userCreateDto);
-            var User = _user.User.FindById(userCreateDto.Id);
+            var User = _wrapper.User.FindById(userCreateDto.Id);
             if (User !=null)
             {
                 return BadRequest("User is Exist");
             }
-            await _user.User.Create(UserModel);
+            await _wrapper.User.Create(UserModel);
             var UserReadDto = _mapper.Map<UserReadDto>(UserModel);
             return CreatedAtRoute(nameof(GetUserById), new { Id = UserReadDto.Id }, UserReadDto);
         }
@@ -72,7 +70,7 @@ namespace Auth
         [HttpPut("{id}")]
         public ActionResult Update(Guid id,[FromBody] UserUpdateDto userUpdateDto)
         {
-            var UserModelFromRepo = _user.User.FindById(id);
+            var UserModelFromRepo = _wrapper.User.FindById(id);
             if (UserModelFromRepo == null)
             {
                 return NotFound();
@@ -82,7 +80,7 @@ namespace Auth
             UserModelFromRepo.Result.Role = userUpdateDto.Role;
             UserModelFromRepo.Result.Usertype = userUpdateDto.Usertype;
             UserModelFromRepo.Result.Province = userUpdateDto.Province;
-            _user.User.SaveChanges();
+            _wrapper.User.SaveChanges();
             return NoContent();
         }
         [HttpPatch("{id}")]
